@@ -73,7 +73,8 @@ h1, h2, h3 {
 .feedback {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 35px;
+  justify-content: space-around;
 }
 .feedback-row {
   display: flex;

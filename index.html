@@ -15,6 +15,18 @@
     <div class="reset-container">
       <button id="resetBtn">Žaisti iš naujo</button>
     </div>
+    <!-- Game mode selection -->
+    <div class="game-mode">
+      <h2>Pasirink žaidimo režimą</h2>
+      <div class="mode-switch">
+        <input type="checkbox" id="gameMode" name="gameMode">
+        <label for="gameMode">
+          <span class="mode-text single">1 žaidėjas</span>
+          <span class="slider"></span>
+          <span class="mode-text multi">2 žaidėjai</span>
+        </label>
+      </div>
+    </div>
     <!-- Color palette -->
   <div class="palette" style="display: none;">
     <h2>Pasirink spalvą</h2>
@@ -31,7 +43,7 @@
   
   <!-- Top row: secret code creation -->
   <h2>Sukurk savo kodą</h2>
-  <div class="code-creation">
+  <div class="code-creation" style="display: none;" id="codeCreationContainer">
     <div class="row secret-row" id="secretRow">
       <!-- 5 holes for code creation -->
       <div class="hole" data-position="0"></div>

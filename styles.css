@@ -163,3 +163,68 @@ button:disabled {
 .final-code {
   margin-top: 2rem;
 }
+
+.game-mode {
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.mode-switch {
+  display: inline-block;
+  margin: 1rem 0;
+}
+
+.mode-switch input[type="checkbox"] {
+  display: none;
+}
+
+.mode-switch label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.mode-text {
+  font-weight: bold;
+  color: #6c757d;
+}
+
+input:checked ~ label .single,
+input:not(:checked) ~ label .multi {
+  color: #6c757d;
+}
+
+input:checked ~ label .multi,
+input:not(:checked) ~ label .single {
+  color: #007bff;
+}
+
+.slider {
+  position: relative;
+  width: 60px;
+  height: 30px;
+  background: #e2e2e2;
+  border-radius: 15px;
+  transition: 0.3s;
+}
+
+.slider:before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: white;
+  transition: 0.3s;
+}
+
+input:checked ~ label .slider {
+  background: #007bff;
+}
+
+input:checked ~ label .slider:before {
+  transform: translateX(30px);
+}

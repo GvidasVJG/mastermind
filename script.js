@@ -12,6 +12,40 @@ const finalCodeDiv = document.getElementById('finalCode');
 const finalCodeRow = document.getElementById('finalCodeRow');
 const resetBtn = document.getElementById('resetBtn');
 
+// Add available colors array
+const AVAILABLE_COLORS = [
+    '#dc3545', '#0d6efd', '#198754', '#fd7e14',
+    '#ffc107', '#795548', '#6f42c1', '#00c1dd'
+];
+
+// Generate random code for single player mode
+function generateRandomCode() {
+    return Array(HOLES).fill(null).map(() => {
+        const randomIndex = Math.floor(Math.random() * AVAILABLE_COLORS.length);
+        return AVAILABLE_COLORS[randomIndex];
+    });
+}
+
+// Add game mode handling
+const gameModeInput = document.getElementById('gameMode');
+const codeCreationContainer = document.getElementById('codeCreationContainer');
+
+function handleGameModeChange() {
+    const isSinglePlayer = !gameModeInput.checked;
+    if (isSinglePlayer) {
+        codeCreationContainer.style.display = 'none';
+        secretCode = generateRandomCode();
+        gameLocked = true;
+        statusDiv.textContent = "Kodas sugeneruotas. Pradėk spėlioti!";
+    } else {
+        codeCreationContainer.style.display = 'flex';
+        secretCode = new Array(HOLES).fill(null);
+        gameLocked = false;
+        statusDiv.textContent = "Pirmasis žaidėjas turi sukurti kodą";
+    }
+    resetGame();
+}
+
 // Data structures
 let secretCode = new Array(HOLES).fill(null);
 let currentGuessRow = 0;
@@ -286,14 +320,16 @@ document.addEventListener('click', (e) => {
 
 // Add reset game function
 function resetGame() {
+    if (!gameOver && !window.confirm("Ar tikrai norite pradėti žaidimą iš naujo?")) {
+        return;
+    }
+    
     // Reset variables
-    secretCode = new Array(HOLES).fill(null);
     currentGuessRow = 0;
     guesses = [];
-    gameLocked = false;
     gameOver = false;
 
-    // Reset UI
+    // Reset UI elements
     secretRow.classList.remove('locked');
     Array.from(secretRow.children).forEach(hole => {
         hole.style.backgroundColor = '#e2e2e2';
@@ -305,10 +341,30 @@ function resetGame() {
     // Reset board
     setupBoard();
     setupHoleClickHandlers();
+    
+    // Handle game mode without recursion
+    const isSinglePlayer = !gameModeInput.checked;
+    if (isSinglePlayer) {
+        codeCreationContainer.style.display = 'none';
+        secretCode = generateRandomCode();
+        gameLocked = true;
+        statusDiv.textContent = "Kodas sugeneruotas. Pradėk spėlioti!";
+    } else {
+        codeCreationContainer.style.display = 'flex';
+        secretCode = new Array(HOLES).fill(null);
+        gameLocked = false;
+        statusDiv.textContent = "Pirmasis žaidėjas turi sukurti kodą";
+    }
 }
 
 // Add event listener
 resetBtn.onclick = resetGame;
+
+// Add event listeners for game mode
+gameModeInput.addEventListener('change', handleGameModeChange);
+
+// Initialize game mode on load
+handleGameModeChange();
 
 // Call this after board setup
 setupHoleClickHandlers();

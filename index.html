@@ -11,7 +11,10 @@
 
   <!-- Title -->
   <h1>Mastermind žaidimas</h1>
-  
+    <!-- Reset button -->
+    <div class="reset-container">
+      <button id="resetBtn">Žaisti iš naujo</button>
+    </div>
     <!-- Color palette -->
   <div class="palette" style="display: none;">
     <h2>Pasirink spalvą</h2>
@@ -44,9 +47,6 @@
   <!-- Main board area: guess rows + feedback will be generated here -->
   <div class="board" id="board"></div>
 
-  <!-- Check button for each guess row -->
-  <button id="checkGuessBtn" disabled>Spėti</button>
-  
   <!-- Status / messages -->
   <div id="status"></div>
 

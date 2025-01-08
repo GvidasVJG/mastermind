@@ -7,10 +7,10 @@ const MAX_GUESSES = 8;
 const secretRow = document.getElementById('secretRow');
 const lockCodeBtn = document.getElementById('lockCodeBtn');
 const board = document.getElementById('board');
-const checkGuessBtn = document.getElementById('checkGuessBtn');
 const statusDiv = document.getElementById('status');
 const finalCodeDiv = document.getElementById('finalCode');
 const finalCodeRow = document.getElementById('finalCodeRow');
+const resetBtn = document.getElementById('resetBtn');
 
 // Data structures
 let secretCode = new Array(HOLES).fill(null);
@@ -27,6 +27,9 @@ function setupBoard() {
     const guessRowDiv = document.createElement('div');
     guessRowDiv.classList.add('guess-row');
     guessRowDiv.setAttribute('data-row', r);
+
+    // Hide rows except the first
+    guessRowDiv.style.display = r === 0 ? 'flex' : 'none';
 
     // The holes container
     const rowHolesDiv = document.createElement('div');
@@ -47,6 +50,16 @@ function setupBoard() {
     feedbackDiv.classList.add('row-feedback');
     feedbackDiv.textContent = ''; // will be filled after each guess
     guessRowDiv.appendChild(feedbackDiv);
+
+    // Create inline guess button
+    const guessButton = document.createElement('button');
+    guessButton.textContent = 'Spėti';
+    guessButton.id = `guessBtn-${r}`;
+    guessButton.classList.add('guess-button');
+    // Only enable button for first row initially
+    guessButton.disabled = r !== 0;
+    guessButton.onclick = () => onCheckGuess(r);
+    guessRowDiv.appendChild(guessButton);
 
     // Finally, add the guess row to the board
     board.appendChild(guessRowDiv);
@@ -75,7 +88,6 @@ function lockSecretCode() {
   // document.getElementById('first_col').click();
   
   // Now the guesser can start playing
-  checkGuessBtn.disabled = false;
   statusDiv.textContent = "Kodas užrakintas. Pradėk spėlioti!";
 }
 
@@ -108,45 +120,47 @@ function onHoleClick(row, position, color) {
   hole.style.backgroundColor = color;
 }
 
-// Check guess button
-checkGuessBtn.onclick = function() {
+// Replace checkGuessBtn.onclick logic with row-based approach
+function onCheckGuess(rowIndex) {
   if (gameOver) return;
-  
-  // Ensure current guess row is completely filled
-  if (guesses[currentGuessRow].includes(null)) {
+  // Ensure current guess row is filled
+  if (guesses[rowIndex].includes(null)) {
     alert('Prieš tikrinant užpildyk visus burbuliukus!');
     return;
   }
 
-  // Calculate black/white feedback
-  const { black, white } = computeFeedback(
-    secretCode.slice(),
-    guesses[currentGuessRow].slice()
-  );
+  // Disable current button
+  const currentButton = document.getElementById(`guessBtn-${rowIndex}`);
+  currentButton.style.display = 'none';
+
+  const { black, white } = computeFeedback(secretCode.slice(), guesses[rowIndex].slice());
   const none = HOLES - (black + white);
 
-  // Place feedback text in the same row
-  const guessRowDiv = board.querySelector(`[data-row='${currentGuessRow}']`);
+  const guessRowDiv = board.querySelector(`[data-row='${rowIndex}']`);
   const feedbackDiv = guessRowDiv.querySelector('.row-feedback');
   feedbackDiv.textContent = `${black} ✅ | ${white} 🟡 | ${none} ❌`;
 
-  // Check win/loss
   if (black === HOLES) {
     statusDiv.textContent = "Šauniai padirbėjai – atspėjai kodą!";
     gameOver = true;
-    checkGuessBtn.disabled = true;
   } else {
     currentGuessRow++;
     if (currentGuessRow >= MAX_GUESSES) {
       statusDiv.textContent = "Nepavyko atspėti kodo.";
       showFinalCode(secretCode);
       gameOver = true;
-      checkGuessBtn.disabled = true;
     } else {
       statusDiv.textContent = `Nepataikei. Tau liko spėjimų: ${MAX_GUESSES - currentGuessRow}`;
+      // Reveal the next row
+      const nextRow = board.querySelector(`[data-row='${currentGuessRow}']`);
+      if (nextRow) {
+        nextRow.style.display = 'flex';
+        const nextButton = document.getElementById(`guessBtn-${currentGuessRow}`);
+        nextButton.disabled = false;
+      }
     }
   }
-};
+}
 
 // Show final code in bubbles if user fails
 function showFinalCode(codeArray) {
@@ -269,6 +283,32 @@ document.addEventListener('click', (e) => {
     hideFloatingPalette();
   }
 });
+
+// Add reset game function
+function resetGame() {
+    // Reset variables
+    secretCode = new Array(HOLES).fill(null);
+    currentGuessRow = 0;
+    guesses = [];
+    gameLocked = false;
+    gameOver = false;
+
+    // Reset UI
+    secretRow.classList.remove('locked');
+    Array.from(secretRow.children).forEach(hole => {
+        hole.style.backgroundColor = '#e2e2e2';
+    });
+    lockCodeBtn.disabled = false;
+    statusDiv.textContent = '';
+    finalCodeDiv.style.display = 'none';
+
+    // Reset board
+    setupBoard();
+    setupHoleClickHandlers();
+}
+
+// Add event listener
+resetBtn.onclick = resetGame;
 
 // Call this after board setup
 setupHoleClickHandlers();

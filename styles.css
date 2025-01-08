@@ -139,6 +139,20 @@ button:disabled {
   cursor: not-allowed;
 }
 
+/* Reset container */
+.reset-container {
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.reset-container button {
+  background-color: #6c757d;
+}
+
+.reset-container button:hover {
+  background-color: #5a6268;
+}
+
 /* Status message */
 #status {
   margin-top: 1rem;

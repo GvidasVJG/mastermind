@@ -11,6 +11,8 @@ body {
   max-width: 650px;
   margin: 2rem auto;
   padding: 1rem;
+  display: flex;
+  flex-direction: column;
   background: white;
   border-radius: 6px;
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
@@ -23,9 +25,9 @@ h1, h2, h3 {
 /* Secret code creation */
 .code-creation {
   display: flex;
-  align-items: center;
+  /* align-items: center; */
   gap: 1rem;
-  margin: 1rem auto;
+  margin: 1rem 0;
 }
 .secret-row {
   display: flex;

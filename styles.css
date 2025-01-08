@@ -66,6 +66,7 @@ h1, h2, h3 {
   cursor: pointer;
   border: 2px solid #333; /* Outline for each bubble */
   box-sizing: border-box;
+  position: relative;
 }
 
 /* Gray out the locked secret code row */
@@ -95,6 +96,22 @@ h1, h2, h3 {
   cursor: pointer;
   border: 2px solid #ffffff;
   box-shadow: 0 0 2px rgba(0,0,0,0.2);
+}
+
+.floating-palette {
+  position: absolute;
+  display: none;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  z-index: 1000;
+}
+
+.floating-palette .color-swatch {
+  margin: 4px;
 }
 
 /* Example color classes */

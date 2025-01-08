@@ -56,11 +56,10 @@ function setupBoard() {
 }
 
 // Secret code hole clicks
-function onSecretHoleClick(position) {
+function onSecretHoleClick(position, color) {
   if (gameLocked) return;
-  if (!selectedColor) return;
-  secretCode[position] = selectedColor;
-  secretRow.children[position].style.backgroundColor = selectedColor;
+  secretCode[position] = color;
+  secretRow.children[position].style.backgroundColor = color;
 }
 
 function lockSecretCode() {
@@ -73,7 +72,7 @@ function lockSecretCode() {
   // Gray out the secret code row
   secretRow.classList.add('locked');
   
-  document.getElementById('first_col').click();
+  // document.getElementById('first_col').click();
   
   // Now the guesser can start playing
   checkGuessBtn.disabled = false;
@@ -91,23 +90,8 @@ Array.from(secretRow.children).forEach((hole) => {
 // Lock code button
 lockCodeBtn.onclick = lockSecretCode;
 
-// Current selected color from the palette
-let selectedColor = null;
-
-// Palette logic
-const colorSwatches = document.querySelectorAll('.color-swatch');
-colorSwatches.forEach((swatch) => {
-  swatch.addEventListener('click', () => {
-    selectedColor = swatch.getAttribute('data-color');
-    colorSwatches.forEach((s) => {
-      s.style.borderColor = '#fff'; 
-    });
-    swatch.style.borderColor = '#000';
-  });
-});
-
 // On a hole click in the guess area
-function onHoleClick(row, position) {
+function onHoleClick(row, position, color) {
   if (gameOver) return;
   if (!gameLocked) {
     alert('Kodas dar nepatvirtintas!');
@@ -116,16 +100,12 @@ function onHoleClick(row, position) {
   if (row !== currentGuessRow) {
     return;
   }
-  if (!selectedColor) {
-    alert('Pirmiausia pasirink spalvą iš paletės!');
-    return;
-  }
 
-  guesses[row][position] = selectedColor;
+  guesses[row][position] = color;
   const guessRowDiv = board.querySelector(`[data-row='${row}']`);
   const rowHolesDiv = guessRowDiv.querySelector('.row-holes');
   const hole = rowHolesDiv.children[position];
-  hole.style.backgroundColor = selectedColor;
+  hole.style.backgroundColor = color;
 }
 
 // Check guess button
@@ -212,3 +192,83 @@ function computeFeedback(solution, guess) {
 
   return { black, white };
 }
+
+// Create floating palette
+function createFloatingPalette() {
+  const palette = document.createElement('div');
+  palette.className = 'floating-palette';
+  
+  document.querySelectorAll('.color-swatch').forEach(swatch => {
+    const clone = swatch.cloneNode(true);
+    clone.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const color = clone.getAttribute('data-color');
+      const targetHole = palette.targetHole;
+      
+      if (targetHole.parentElement.id === 'secretRow') {
+        onSecretHoleClick(targetHole.dataset.position, color);
+      } else {
+        const row = parseInt(targetHole.closest('.guess-row').dataset.row);
+        const position = parseInt(targetHole.dataset.position);
+        onHoleClick(row, position, color);
+      }
+      
+      hideFloatingPalette();
+    });
+    palette.appendChild(clone);
+  });
+  
+  document.body.appendChild(palette);
+  return palette;
+}
+
+const floatingPalette = createFloatingPalette();
+
+function showFloatingPalette(hole, event) {
+  if (gameOver) return;
+  
+  floatingPalette.targetHole = hole;
+  floatingPalette.style.display = 'grid';
+  
+  const rect = hole.getBoundingClientRect();
+  floatingPalette.style.left = `${rect.right + 10}px`;
+  floatingPalette.style.top = `${rect.top}px`;
+}
+
+function hideFloatingPalette() {
+  floatingPalette.style.display = 'none';
+}
+
+// Update hole click handlers
+function setupHoleClickHandlers() {
+  // Secret row holes
+  Array.from(secretRow.children).forEach((hole) => {
+    hole.onclick = (e) => {
+      if (!gameLocked) {
+        showFloatingPalette(hole, e);
+      }
+    };
+  });
+  
+  // Board holes
+  document.querySelectorAll('.board .hole').forEach(hole => {
+    hole.onclick = (e) => {
+      if (gameLocked && !gameOver) {
+        const row = parseInt(hole.closest('.guess-row').dataset.row);
+        if (row === currentGuessRow) {
+          showFloatingPalette(hole, e);
+        }
+      }
+    }
+  });
+}
+
+// Hide palette when clicking outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.floating-palette') && !e.target.closest('.hole')) {
+    hideFloatingPalette();
+  }
+});
+
+// Call this after board setup
+setupHoleClickHandlers();

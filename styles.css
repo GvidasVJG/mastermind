@@ -25,6 +25,7 @@ h1, h2, h3 {
   display: flex;
   align-items: center;
   gap: 1rem;
+  margin: 1rem auto;
 }
 .secret-row {
   display: flex;
@@ -34,26 +35,27 @@ h1, h2, h3 {
   cursor: pointer;
 }
 
-/* Board & Feedback side by side */
-.board-and-feedback {
-  display: flex;
-  justify-content: flex-start;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
-/* Each guess row */
+/* Board layout: each guess row is a flex container
+   so holes + feedback text are side by side */
 .board {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
-.row {
+.guess-row {
+  display: flex;
+  align-items: center; 
+  justify-content: flex-start;
+  gap: 2rem; /* space between holes and feedback text */
+}
+
+/* Container holding the holes */
+.row-holes {
   display: flex;
   gap: 1rem;
 }
 
-/* Circular holes */
+/* Holes (bubbles) */
 .hole {
   width: 45px;
   height: 45px;
@@ -64,34 +66,20 @@ h1, h2, h3 {
   box-sizing: border-box;
 }
 
-/* When secret code is locked, grayscale the secret row */
+/* Gray out the locked secret code row */
 .locked .hole {
   filter: grayscale(100%) contrast(0);
 }
 
-/* Feedback */
-.feedback {
-  display: flex;
-  flex-direction: column;
-  gap: 35px;
-  justify-content: space-around;
-}
-.feedback-row {
-  display: flex;
-  gap: 4px;
-}
-.feedback-peg {
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  background-color: #ddd;
-  border: 1px solid #444;
-  box-sizing: border-box;
+/* Feedback text container in guess row */
+.row-feedback {
+  font-weight: bold;
+  min-width: 120px; /* so it doesn't jump around */
 }
 
 /* Palette */
 .palette {
-  margin-top: 2rem;
+  margin: 2rem 0;
 }
 .palette h2 {
   margin-bottom: 0.5rem;

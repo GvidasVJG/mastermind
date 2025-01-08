@@ -7,7 +7,6 @@ const MAX_GUESSES = 8;
 const secretRow = document.getElementById('secretRow');
 const lockCodeBtn = document.getElementById('lockCodeBtn');
 const board = document.getElementById('board');
-const feedback = document.getElementById('feedback');
 const checkGuessBtn = document.getElementById('checkGuessBtn');
 const statusDiv = document.getElementById('status');
 const finalCodeDiv = document.getElementById('finalCode');
@@ -17,57 +16,54 @@ const finalCodeRow = document.getElementById('finalCodeRow');
 let secretCode = new Array(HOLES).fill(null);
 let currentGuessRow = 0;
 let guesses = []; // each guess is an array of color strings
-let gameLocked = false; // to indicate if the secret code is locked
+let gameLocked = false;
 let gameOver = false;
 
-// Create guess rows + feedback rows
+// Initialize the board
 function setupBoard() {
   board.innerHTML = '';
-  feedback.innerHTML = '';
   for (let r = 0; r < MAX_GUESSES; r++) {
-    // Create row of holes
-    const rowDiv = document.createElement('div');
-    rowDiv.classList.add('row');
-    rowDiv.setAttribute('data-row', r);
+    // The guess-row container (flex)
+    const guessRowDiv = document.createElement('div');
+    guessRowDiv.classList.add('guess-row');
+    guessRowDiv.setAttribute('data-row', r);
 
-    const guessRow = [];
+    // The holes container
+    const rowHolesDiv = document.createElement('div');
+    rowHolesDiv.classList.add('row-holes');
+
     for (let c = 0; c < HOLES; c++) {
       const hole = document.createElement('div');
       hole.classList.add('hole');
       hole.setAttribute('data-position', c);
       // Only allow color selection on the current row
       hole.onclick = () => onHoleClick(r, c);
-      rowDiv.appendChild(hole);
+      rowHolesDiv.appendChild(hole);
     }
-    board.appendChild(rowDiv);
+    guessRowDiv.appendChild(rowHolesDiv);
 
-    // Feedback row
-    const feedbackRow = document.createElement('div');
-    feedbackRow.classList.add('feedback-row');
-    for (let i = 0; i < HOLES; i++) {
-      const peg = document.createElement('div');
-      peg.classList.add('feedback-peg');
-      feedbackRow.appendChild(peg);
-    }
-    feedback.appendChild(feedbackRow);
+    // Feedback text (same line as holes)
+    const feedbackDiv = document.createElement('div');
+    feedbackDiv.classList.add('row-feedback');
+    feedbackDiv.textContent = ''; // will be filled after each guess
+    guessRowDiv.appendChild(feedbackDiv);
+
+    // Finally, add the guess row to the board
+    board.appendChild(guessRowDiv);
 
     guesses.push(new Array(HOLES).fill(null));
   }
 }
 
-// Handle creating the secret code
+// Secret code hole clicks
 function onSecretHoleClick(position) {
-  // Only if code isn't locked
   if (gameLocked) return;
-
   if (!selectedColor) return;
   secretCode[position] = selectedColor;
-  // Update the hole’s background
   secretRow.children[position].style.backgroundColor = selectedColor;
 }
 
 function lockSecretCode() {
-  // Validate all holes are filled
   if (secretCode.includes(null)) {
     alert('Prieš patvirtinant kodą, užpildyk visus burbuliukus!');
     return;
@@ -77,15 +73,17 @@ function lockSecretCode() {
   // Gray out the secret code row
   secretRow.classList.add('locked');
   
+  document.getElementById('first_col').click();
+  
   // Now the guesser can start playing
   checkGuessBtn.disabled = false;
   statusDiv.textContent = "Kodas užrakintas. Pradėk spėlioti!";
 }
 
-// Setup board on load
+// On page load, create the board
 setupBoard();
 
-// Add click logic to secret row for setting the code
+// Hook up secret code creation
 Array.from(secretRow.children).forEach((hole) => {
   hole.onclick = () => onSecretHoleClick(hole.dataset.position);
 });
@@ -93,24 +91,22 @@ Array.from(secretRow.children).forEach((hole) => {
 // Lock code button
 lockCodeBtn.onclick = lockSecretCode;
 
-// Track what color is currently selected from the palette
+// Current selected color from the palette
 let selectedColor = null;
 
 // Palette logic
 const colorSwatches = document.querySelectorAll('.color-swatch');
 colorSwatches.forEach((swatch) => {
   swatch.addEventListener('click', () => {
-    // Mark the chosen color
     selectedColor = swatch.getAttribute('data-color');
-    // (Optional) highlight the chosen swatch
     colorSwatches.forEach((s) => {
       s.style.borderColor = '#fff'; 
     });
-    swatch.style.borderColor = '#000'; // highlight
+    swatch.style.borderColor = '#000';
   });
 });
 
-// Clicking on a hole in the guess row
+// On a hole click in the guess area
 function onHoleClick(row, position) {
   if (gameOver) return;
   if (!gameLocked) {
@@ -118,7 +114,6 @@ function onHoleClick(row, position) {
     return;
   }
   if (row !== currentGuessRow) {
-    // Only current guess row can be edited
     return;
   }
   if (!selectedColor) {
@@ -126,56 +121,43 @@ function onHoleClick(row, position) {
     return;
   }
 
-  // Place color in guess data
   guesses[row][position] = selectedColor;
-  // Update the hole’s background
-  const rowDiv = board.querySelector(`[data-row='${row}']`);
-  const hole = rowDiv.children[position];
+  const guessRowDiv = board.querySelector(`[data-row='${row}']`);
+  const rowHolesDiv = guessRowDiv.querySelector('.row-holes');
+  const hole = rowHolesDiv.children[position];
   hole.style.backgroundColor = selectedColor;
 }
 
 // Check guess button
 checkGuessBtn.onclick = function() {
   if (gameOver) return;
-  // Make sure current row is completely filled
+  
+  // Ensure current guess row is completely filled
   if (guesses[currentGuessRow].includes(null)) {
     alert('Prieš tikrinant užpildyk visus burbuliukus!');
     return;
   }
 
-  // Compute feedback
+  // Calculate black/white feedback
   const { black, white } = computeFeedback(
     secretCode.slice(),
     guesses[currentGuessRow].slice()
   );
+  const none = HOLES - (black + white);
 
-  // Update feedback pegs on the screen
-  const feedbackRow = feedback.children[currentGuessRow];
-  let blackCount = black;
-  let whiteCount = white;
-  for (let i = 0; i < HOLES; i++) {
-    const peg = feedbackRow.children[i];
-    if (blackCount > 0) {
-      peg.style.backgroundColor = 'black';
-      blackCount--;
-    } else if (whiteCount > 0) {
-      peg.style.backgroundColor = 'white';
-      whiteCount--;
-    } else {
-      peg.style.backgroundColor = '#ddd'; // no match
-    }
-  }
+  // Place feedback text in the same row
+  const guessRowDiv = board.querySelector(`[data-row='${currentGuessRow}']`);
+  const feedbackDiv = guessRowDiv.querySelector('.row-feedback');
+  feedbackDiv.textContent = `${black} ✅ | ${white} 🟡 | ${none} ❌`;
 
-  // Check for win/loss
+  // Check win/loss
   if (black === HOLES) {
     statusDiv.textContent = "Šauniai padirbėjai – atspėjai kodą!";
     gameOver = true;
     checkGuessBtn.disabled = true;
-    return;
   } else {
     currentGuessRow++;
     if (currentGuessRow >= MAX_GUESSES) {
-      // out of rows - show final code in bubbles
       statusDiv.textContent = "Nepavyko atspėti kodo.";
       showFinalCode(secretCode);
       gameOver = true;
@@ -186,12 +168,10 @@ checkGuessBtn.onclick = function() {
   }
 };
 
-/**
- * Show the final code in bubbles rather than just text.
- */
+// Show final code in bubbles if user fails
 function showFinalCode(codeArray) {
   finalCodeDiv.style.display = 'block';
-  finalCodeRow.innerHTML = ''; // clear old stuff if any
+  finalCodeRow.innerHTML = '';
   codeArray.forEach((color) => {
     const hole = document.createElement('div');
     hole.classList.add('hole');
@@ -202,8 +182,9 @@ function showFinalCode(codeArray) {
 }
 
 /**
- * Computes black (exact) and white (color‐only) matches.
- * Typical Mastermind feedback function.
+ * Typical Mastermind feedback function
+ * black = correct color & position
+ * white = correct color, wrong position
  */
 function computeFeedback(solution, guess) {
   let black = 0;
@@ -213,7 +194,6 @@ function computeFeedback(solution, guess) {
   for (let i = 0; i < HOLES; i++) {
     if (solution[i] === guess[i]) {
       black++;
-      // Remove matched color from further checks
       solution[i] = null;
       guess[i] = null;
     }
